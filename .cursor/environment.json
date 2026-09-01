@@ -1,0 +1,4 @@
+{
+  "name": "scroll-world",
+  "install": "sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg webp python3-pil"
+}
