@@ -5,7 +5,6 @@
    injects its own (namespaced) CSS into a container you give it, so it drops into
    plain HTML, Next.js (call from a ref/useEffect), Vue (onMounted), a server-
    rendered page, anything.
-
    USAGE
      mountScrollWorld(document.getElementById('world'), {
        brand: { name: 'Pearl & Co.', href: '#top' },
@@ -27,7 +26,6 @@
        ],
        connectors: [clipUrl, …],          // length = sections.length - 1 (nulls allowed)
        connectorsMobile: [clipUrl, …],    // optional lighter connectors for phones (same length)
-
    MOBILE (the clipMobile/connectorsMobile variants are the opt-in mobile version;
    the rest of the phone handling below is always on)
      The engine is phone-aware out of the box: on a coarse-pointer / ≤860px viewport it
@@ -47,14 +45,12 @@
        - drops the drifting particles and ignores URL-bar-only resizes (no scroll jump).
      Nothing here is required — a config with only `clip`/`connectors` still works on
      phones; the mobile variants just make it lighter and smoother.
-
    THEME (CSS custom properties; set on the container or :root to override)
      --sw-bg         page background (match your scene bg for seamless posters)
      --sw-ink        primary text
      --sw-ink-soft   secondary text
      --sw-accent     default accent (each section overrides via its `accent`)
      --sw-font-display / --sw-font-body
-
    REQUIREMENTS ON YOUR ASSETS
      - clips encoded native-res, crf~20, -g 8, +faststart, no audio (see pipeline.md)
      - connectors' endpoints are the neighbouring dives' ACTUAL frames (see SKILL Step 5)
@@ -62,7 +58,6 @@
    The engine loads each clip as a Blob (always seekable) and scrubs currentTime; it does
    NOT depend on HTTP byte-range support.
    ========================================================================== */
-
 function mountScrollWorld(container, config) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Phone detection. `coarse` is captured once (input type doesn't change mid-session);
@@ -79,10 +74,8 @@ function mountScrollWorld(container, config) {
   const CROSSFADE = (config.crossfade != null) ? config.crossfade : 0.12;  // seam dissolve width (vh)
   const N = SECTIONS.length;
   if (!N) return;
-
   injectCSS();
   container.classList.add('sw-root');
-
   // ---- build the interleaved segment chain: dive0, conn0, dive1, … diveN-1 ----
   const SEGMENTS = [];
   SECTIONS.forEach((s, i) => {
@@ -100,7 +93,6 @@ function mountScrollWorld(container, config) {
     }
   });
   const NSEG = SEGMENTS.length;
-
   // ---- DOM ----
   const sky = el('div', 'sw-sky');
   if (config.atmosphere !== false) {
@@ -108,10 +100,8 @@ function mountScrollWorld(container, config) {
     sky.appendChild(el('div', 'sw-sky__glow'));
   }
   const particles = el('div', 'sw-particles'); sky.appendChild(particles);
-
   const scrollbar = el('div', 'sw-scrollbar');
   const scrollbarFill = el('span'); scrollbar.appendChild(scrollbarFill);
-
   const topbar = el('div', 'sw-topbar');
   if (config.brand) {
     const brand = el('a', 'sw-brand'); brand.href = (config.brand.href || '#');
@@ -124,7 +114,6 @@ function mountScrollWorld(container, config) {
     const c = el('a', 'sw-topcta'); c.href = config.cta.href || '#'; c.textContent = config.cta.label;
     topbar.appendChild(c);
   }
-
   const stage = el('div', 'sw-stage');
   const copylayer = el('div', 'sw-copylayer');
   const route = el('div', 'sw-route');
@@ -132,9 +121,7 @@ function mountScrollWorld(container, config) {
   const hintText = el('span'); hintText.textContent = config.hint || 'scroll'; hint.appendChild(hintText);
   hint.appendChild(el('i'));
   const track = el('div', 'sw-track');
-
   [sky, scrollbar, topbar, stage, copylayer, route, hint, track].forEach(n => container.appendChild(n));
-
   // segment scenes
   SEGMENTS.forEach(s => {
     const scene = el('div', 'sw-scene'); scene.style.setProperty('--sw-accent', s.accent || '');
@@ -145,7 +132,6 @@ function mountScrollWorld(container, config) {
     s.el = scene; s.img = img; s.video = null; s.hasClip = false;
     s.loading = false; s.ready = false; s.cur = 0; s.target = 0; s.visible = false;
   });
-
   // per-section copy / route / nav
   const copies = [], dots = [];
   SECTIONS.forEach((s, i) => {
@@ -158,17 +144,14 @@ function mountScrollWorld(container, config) {
       (s.tags && s.tags.length ? `<ul class="sw-copy__tags">${s.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : '') +
       (s.cta ? `<div class="sw-copy__cta">${ctaBtns(s.cta)}</div>` : '');
     copylayer.appendChild(c); copies.push(c);
-
     const dot = el('button', 'sw-route__dot'); dot.style.setProperty('--sw-accent', s.accent || '');
     dot.innerHTML = `<span class="sw-route__label">${esc(s.label || '')}</span><i></i>`;
     dot.addEventListener('click', () => jumpTo(i)); route.appendChild(dot); dots.push(dot);
-
     if (config.nav !== false) {
       const b = el('button', 'sw-nav__item'); b.textContent = s.label || '';
       b.addEventListener('click', () => jumpTo(i)); nav.appendChild(b);
     }
   });
-
   // ---- math ----
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
   const smooth = x => { x = clamp(x); return x * x * (3 - 2 * x); };
@@ -178,7 +161,6 @@ function mountScrollWorld(container, config) {
   const lingerEase = (x, L) => { L = clamp(L); const c = x - 0.5; return (1 - L) * x + L * (4 * c * c * c + 0.5); };
   let vh = window.innerHeight, stageX = 0, totalW = 0, activeIndex = -1, ticking = false;
   let laidOutW = window.innerWidth;   // width the current layout was computed at (see onResize)
-
   function layout() {
     vh = window.innerHeight;
     laidOutW = window.innerWidth;
@@ -189,12 +171,10 @@ function mountScrollWorld(container, config) {
     track.style.height = (totalW * vh + vh) + 'px';   // +1vh so the last flight completes
     read();
   }
-
   function jumpTo(i) {
     const seg = SECTIONS[i]._seg;
     window.scrollTo({ top: seg.start + (seg.end - seg.start) * 0.5, behavior: reduce ? 'auto' : 'smooth' });
   }
-
   function loadClip(s) {
     // Under prefers-reduced-motion we never load the clips at all — the stills stay up
     // and simply cross-dissolve as you scroll. No scrubbed video motion, no decode cost.
@@ -215,16 +195,30 @@ function mountScrollWorld(container, config) {
         // hiding the still on metadata alone would flash an empty scene.
         v.addEventListener('seeked', () => { s.el.classList.add('has-clip'); }, { once: true });
         v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
+        // iOS WKWebView/Safari often can't decode blob: media at all — the video
+        // then never reaches readyState 2 and the poster would stay up forever.
+        // Watchdog: if nothing has painted shortly after blob attach (or the blob
+        // src errors outright), fall back to the direct URL, which WKWebView
+        // decodes fine (seeking then rides on the host's byte-range support /
+        // progressive buffering).
+        const fallbackToDirect = () => {
+          if (v._fellBack) return; v._fellBack = true;
+          try { if ((v.src || '').startsWith('blob:')) URL.revokeObjectURL(v.src); } catch (e) {}
+          v.src = url; try { v.load(); } catch (e) {}
+        };
+        v.addEventListener('error', fallbackToDirect);
+        const wd = setInterval(() => {
+          if (v.readyState >= 2) { clearInterval(wd); return; }
+          if ((v._wdT = (v._wdT || 0) + 1) >= 5) { clearInterval(wd); fallbackToDirect(); }
+        }, 500);
         s.el.appendChild(v); s.video = v; s.hasClip = true;
       }).catch(() => { s.loading = false; });
   }
-
   function read() {
     const y = window.scrollY || window.pageYOffset;
     const fade = CROSSFADE * vh;
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
-
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (y > s.start - 1.6 * vh && y < s.end + 1.6 * vh) loadClip(s);
@@ -240,7 +234,6 @@ function mountScrollWorld(container, config) {
         s.img.style.transform = `translateX(${stageX - 2}vw) scale(${sc.toFixed(3)})`;
       }
     }
-
     for (let i = 0; i < N; i++) {
       const seg = SECTIONS[i]._seg;
       const pr = clamp((y - seg.start) / (seg.end - seg.start), 0, 1);
@@ -254,7 +247,6 @@ function mountScrollWorld(container, config) {
       c.style.transform = reduce ? 'none' : `translateY(${(0.5 - pr) * 4}vh)`;
       c.style.pointerEvents = cop > 0.5 ? 'auto' : 'none';
     }
-
     const cur = SEGMENTS[ci];
     const near = clamp(cur.kind === 'dive' ? cur.si
       : (((y - cur.start) / (cur.end - cur.start)) > 0.5 ? cur.si + 1 : cur.si), 0, N - 1);
@@ -269,7 +261,6 @@ function mountScrollWorld(container, config) {
     if (particles) particles.style.transform = `translate3d(0, ${-y * 0.05}px, 0)`;
     ticking = false;
   }
-
   function raf() {
     const eps = isMobile() ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
     for (let i = 0; i < NSEG; i++) {
@@ -287,7 +278,6 @@ function mountScrollWorld(container, config) {
     }
     requestAnimationFrame(raf);
   }
-
   // iOS needs a user gesture before a muted video will decode/paint reliably. On the
   // first touch we prime every loaded clip (muted play→pause) so the first seek is
   // instant instead of showing a blank frame. `userReady` also makes freshly-loaded
@@ -301,11 +291,13 @@ function mountScrollWorld(container, config) {
   function onFirstGesture() {
     if (userReady) return;
     userReady = true;
+    // On phones, kick off every remaining clip load right away — mobile encodes
+    // are small, and a fast flick must never outrun the fetch and meet a poster.
+    if (isMobile()) SEGMENTS.forEach(s => loadClip(s));
     SEGMENTS.forEach(s => primeVideo(s.video));
   }
   window.addEventListener('pointerdown', onFirstGesture, { once: true, passive: true });
   window.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
-
   // Particles are a per-frame cost we can't afford alongside video scrubbing on a phone.
   seedParticles(particles, reduce || coarse);
   window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(read); } }, { passive: true });
@@ -323,7 +315,6 @@ function mountScrollWorld(container, config) {
   window.addEventListener('load', layout);
   layout();
   requestAnimationFrame(raf);
-
   // ---- helpers ----
   function el(tag, cls) { const n = document.createElement(tag); if (cls) n.className = cls; return n; }
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -335,7 +326,6 @@ function mountScrollWorld(container, config) {
     return h;
   }
 }
-
 function seedParticles(host, reduce) {
   if (!host || reduce) return;
   const kinds = ['dot', 'dot', 'ring'];
@@ -352,7 +342,6 @@ function seedParticles(host, reduce) {
     host.appendChild(s);
   }
 }
-
 function injectCSS() {
   if (document.getElementById('sw-css')) return;
   const css = `
@@ -442,7 +431,6 @@ function injectCSS() {
   style.textContent = '@layer sw {\n' + css + '\n}';
   document.head.appendChild(style);
 }
-
 // Expose for module + global use.
 if (typeof module !== 'undefined' && module.exports) module.exports = { mountScrollWorld };
 if (typeof window !== 'undefined') window.mountScrollWorld = mountScrollWorld;

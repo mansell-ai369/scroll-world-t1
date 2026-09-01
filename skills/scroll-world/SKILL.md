@@ -7,12 +7,15 @@ description: >
   with NO cuts — one continuous connected flight (Emons-style isometric diorama world,
   or any art direction you pick). The skill interviews the user for the topic, the
   story beats/sections, and brand kit, then generates cohesive scenes + seamless camera
-  clips with Higgsfield and wires a portable, framework-agnostic scroll-scrub engine.
-  The video chain renders through Monid by default (Seedance 2.0, pay-per-clip
-  USD — capability re-checked each build, see Step 4) with Higgsfield credits as
-  the fallback biller. Use when the user wants a "3D world" /
-  "browse-through-the-industry" hero, a scroll cinematic, a diorama landing, or to
-  turn a business into a scrollable world.
+  clips with Higgsfield and wires a portable, framework-agnostic scroll-scrub engine
+  via mountScrollWorld(container, config) in references/scrub-engine.js (brand/cta/hint,
+  diveScroll/crossfade/connScroll, sections with clipMobile + scroll/linger, and
+  connectors — Architecture A uses connectors: []). Demo reference: 珍丸茶室 Pearl & Co.
+  under demo/ and references/pearl-architecture-a.html. The video chain renders through
+  Monid by default (Seedance 2.0, pay-per-clip USD — capability re-checked each build,
+  see Step 4) with Higgsfield credits as the fallback biller. Use when the user wants
+  a "3D world" / "browse-through-the-industry" hero, a scroll cinematic, a diorama
+  landing, or to turn a business into a scrollable world.
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Skill
 ---
 
@@ -566,23 +569,33 @@ Copy `references/scrub-engine.js` (and, if you want a fully standalone page, the
 framework. It's config-driven and self-contained:
 
 ```js
+// Public API — always mountScrollWorld (global + CommonJS export).
 mountScrollWorld(document.getElementById('world'), {
-  brand: { name: 'Pearl & Co.' },
-  diveScroll: 1.3, connScroll: 0.9,          // viewport-heights of scroll per clip
+  brand: { name: '珍丸茶室 Pearl & Co.', href: '#top' },
+  cta: { label: '立即叫茶', href: '#finale' },
+  hint: '碌落去 · 飛入嚟',
+  diveScroll: 1.3,
+  crossfade: 0.12,                 // seam dissolve width in vh
+  // connScroll: 0.9,              // only when using connector clips
   sections: [
-    { id:'farm', label:'The Farms', still:'assets/farm.webp',
+    { id:'farm', label:'茶園', still:'assets/farm.webp',
       clip:'assets/vid/farm.mp4',
-      clipMobile:'assets/vid/farm-m.mp4',      // mobile opt-in only: native 9:16 render
-      stillMobile:'assets/farm-m.webp',        // its first frame as the portrait poster
-      scroll: 1.6, linger: 0.45,   // optional pacing: longer dwell + camera settles mid-scene
-      accent:'#8FB98A', eyebrow:'From leaf to last sip', title:'It starts in the hills.',
-      body:'…', tags:['Single-origin','Hand-picked'] },
-    // …one per section; last may carry a `cta`
+      clipMobile:'assets/vid/farm-m.mp4',
+      accent:'#8FB98A', scroll: 1.5, linger: 0.35,
+      eyebrow:'FROM LEAF TO LAST SIP', title:'一切，由山頭開始。',
+      body:'清晨手採嘅高山茶葉，係每一杯嘅起點。',
+      tags:['高山茶葉','每日新鮮','手採'] },
+    // …kitchen / shop / delivery…
+    // last section may carry section-level cta:{ primary, secondary }
   ],
-  connectors:       ['assets/vid/conn1.mp4','assets/vid/conn2.mp4',   /* … length = sections-1 */],
-  connectorsMobile: ['assets/vid/conn1-m.mp4','assets/vid/conn2-m.mp4' /* … same length; mobile opt-in only */],
+  // Architecture A (continuous legs): empty connectors — each dive starts from
+  // the previous leg's last frame. Architecture B: length === sections.length-1.
+  connectors: [],
+  // connectorsMobile: […],       // optional; same length as connectors
 });
 ```
+
+Ship-ready Architecture A page: `references/pearl-architecture-a.html` (also `demo/index.html`).
 
 The engine handles: the ordered dive/connector chain, scroll→currentTime with rAF
 smoothing, blob loading, lazy prefetch of nearby clips, frame-matched crossfades, pinned
@@ -755,8 +768,10 @@ is the thing most likely to be wrong:
   prompt template (scene still, dive, connector) with fill-in slots.
 - `references/pipeline.md` — copy-paste batch scripts for the whole run (generate →
   extract frames → connectors → encode → mobile encode), bash-3.2-safe.
-- `references/scrub-engine.js` — the portable, config-driven scrub engine (builds DOM +
-  injects CSS; blob-seek, lazy load, seam crossfade, copy, route rail, reduced-motion, and
-  phone hardening: mobile encodes, seek-coalescing, iOS priming, safe-area, no-jump resize).
+- `references/scrub-engine.js` — the portable, config-driven scrub engine (`mountScrollWorld`;
+  builds DOM + injects CSS; blob-seek, lazy load, seam crossfade, copy, route rail,
+  reduced-motion, phone hardening + iOS blob→direct URL fallback).
 - `references/index-template.html` — a minimal standalone page that mounts the engine.
+- `references/pearl-architecture-a.html` — 珍丸茶室 Pearl & Co. Architecture A demo
+  (`connectors: []`, zh-Hant theme tokens, five-section farm→finale journey).
 - `references/knockout.py` — border-connected background knockout for floating scenes.
