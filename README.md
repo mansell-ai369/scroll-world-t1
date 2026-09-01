@@ -128,3 +128,14 @@ skills/scroll-world/
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Pearl & Co. demo
+
+Identical **珍丸茶室 Pearl & Co.** Architecture A demo lives in [`demo/`](demo/).
+
+```bash
+cd demo && python3 -m http.server 8080
+```
+
+See [`demo/README.md`](demo/README.md) and [`DEPLOY.md`](DEPLOY.md) (Docker + k3s manifests). Cursor skill: [`.cursor/skills/scroll-world/`](.cursor/skills/scroll-world/).
+

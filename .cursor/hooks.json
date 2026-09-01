@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/guard-demo-assets.sh",
+        "matcher": "rm\\s+(-[a-zA-Z]*f[a-zA-Z]*|--force).*assets|rm\\s+-rf\\s+.*assets|rm\\s+-fr\\s+.*assets",
+        "failClosed": true
+      }
+    ]
+  }
+}

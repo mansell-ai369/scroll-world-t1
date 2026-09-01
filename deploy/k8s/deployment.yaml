@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pearl-demo
+  namespace: scroll-world
+  labels:
+    app: pearl-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pearl-demo
+  template:
+    metadata:
+      labels:
+        app: pearl-demo
+    spec:
+      containers:
+        - name: nginx
+          image: pearl-scroll-world:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
